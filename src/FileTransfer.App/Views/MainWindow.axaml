@@ -1,0 +1,567 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:FileTransfer.App.ViewModels"
+        x:Class="FileTransfer.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding WindowTitle}"
+        Icon="/Assets/app.ico"
+        Width="1220"
+        Height="780"
+        MinWidth="960"
+        MinHeight="640"
+        Background="{DynamicResource AppWindowBg}">
+
+  <Window.Styles>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="#0969DA" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#0550AE" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="#8CB9ED" />
+      <Setter Property="Foreground" Value="#F0F6FC" />
+    </Style>
+    <Style Selector="Button.danger">
+      <Setter Property="Background" Value="#CF222E" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="ScrollBar">
+      <Setter Property="AllowAutoHide" Value="True" />
+    </Style>
+  </Window.Styles>
+
+  <Grid>
+    <!-- ========================================================= -->
+    <!-- MODE 1: WinSCP-style Centered Login Panel (Disconnected)   -->
+    <!-- ========================================================= -->
+    <Grid IsVisible="{Binding !IsConnected}" Margin="24" KeyDown="LoginPanel_KeyDown">
+      <Border MaxWidth="640"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center"
+              Background="{DynamicResource AppCardBg}"
+              BorderBrush="{DynamicResource AppCardBorder}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="24"
+              BoxShadow="0 4 16 0 #14000000">
+        <StackPanel Spacing="16">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="4">
+              <TextBlock Text="登录文件服务器（经跳板机中转）" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AppTextPrimary}" />
+              <TextBlock Text="首次输入并连接后将自动加密缓存配置，连接成功后自动进入双栏文件传输工作区。" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Content="设置"
+                    Click="SettingsButton_Click"
+                    ToolTip.Tip="外观主题、Vim 键盘模式与凭据设置"
+                    VerticalAlignment="Top"
+                    Padding="10,5" />
+          </Grid>
+
+          <!-- Group 1: Jump Host -->
+          <Border BorderBrush="{DynamicResource AppSubtleBorder}" BorderThickness="1" CornerRadius="6" Padding="14" Background="{DynamicResource AppWindowBg}">
+            <StackPanel Spacing="10">
+              <TextBlock Text="1. 跳板机设置（SSH / SFTP）" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource AppAccentText}" />
+              <Grid ColumnDefinitions="*,90" RowDefinitions="Auto,Auto,Auto">
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,8" Spacing="4">
+                  <TextBlock Text="跳板机 IP / 主机名" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                  <TextBox Text="{Binding JumpHost}" Watermark="例如 10.x.x.x" IsEnabled="{Binding !IsBusy}" />
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" Spacing="4">
+                  <TextBlock Text="端口" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                  <TextBox Text="{Binding JumpPortText}" Watermark="22" IsEnabled="{Binding !IsBusy}" />
+                </StackPanel>
+
+                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,8" ColumnDefinitions="*,*">
+                  <StackPanel Grid.Column="0" Margin="0,0,10,0" Spacing="4">
+                    <TextBlock Text="跳板机用户名" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                    <TextBox Text="{Binding JumpUsername}" Watermark="用户名" IsEnabled="{Binding !IsBusy}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Text="跳板机密码" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                    <TextBox Text="{Binding JumpPassword}" PasswordChar="●" Watermark="密码" IsEnabled="{Binding !IsBusy}" />
+                  </StackPanel>
+                </Grid>
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Spacing="4">
+                  <TextBlock Text="跳板机中转目录（默认 /tmp）" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                  <TextBox Text="{Binding RelayBasePath}" Watermark="/tmp" IsEnabled="{Binding !IsBusy}" />
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- Group 2: File Server -->
+          <Border BorderBrush="{DynamicResource AppSubtleBorder}" BorderThickness="1" CornerRadius="6" Padding="14" Background="{DynamicResource AppWindowBg}">
+            <StackPanel Spacing="10">
+              <TextBlock Text="2. 文件服务器设置（SFTP）" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource AppAccentText}" />
+              <Grid ColumnDefinitions="*,90" RowDefinitions="Auto,Auto">
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,8" Spacing="4">
+                  <TextBlock Text="文件服务器 IP / 主机名" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                  <TextBox Text="{Binding FileServerHost}" Watermark="例如 192.168.x.x" IsEnabled="{Binding !IsBusy}" />
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" Spacing="4">
+                  <TextBlock Text="端口" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                  <TextBox Text="{Binding FileServerPortText}" Watermark="22" IsEnabled="{Binding !IsBusy}" />
+                </StackPanel>
+
+                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="*,*">
+                  <StackPanel Grid.Column="0" Margin="0,0,10,0" Spacing="4">
+                    <TextBlock Text="文件服务器用户名" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                    <TextBox Text="{Binding FileServerUsername}" Watermark="用户名" IsEnabled="{Binding !IsBusy}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Text="文件服务器密码" FontSize="12" Foreground="{DynamicResource AppTextSecondary}" />
+                    <TextBox Text="{Binding FileServerPassword}" PasswordChar="●" Watermark="密码" IsEnabled="{Binding !IsBusy}" />
+                  </StackPanel>
+                </Grid>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- Footer Actions & Status -->
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+              <CheckBox IsChecked="{Binding RememberPasswords}"
+                        Content="记住密码（本地加密保存）"
+                        IsEnabled="{Binding !IsBusy}" />
+              <Button Content="清除已保存密码"
+                      Command="{Binding ClearSavedPasswordsCommand}"
+                      IsEnabled="{Binding !IsBusy}"
+                      Padding="8,3"
+                      FontSize="12" />
+            </StackPanel>
+
+            <TextBlock Grid.Column="1"
+                       Text="{Binding StatusBanner}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,14,0"
+                       FontWeight="SemiBold"
+                       Foreground="#0969DA" />
+
+            <Button Grid.Column="2"
+                    Classes="primary"
+                    Content="连接"
+                    Command="{Binding ToggleConnectionCommand}"
+                    IsEnabled="{Binding !IsBusy}"
+                    MinWidth="110"
+                    Height="34"
+                    HorizontalContentAlignment="Center" />
+          </Grid>
+
+          <!-- Recent connection log line -->
+          <Border Background="#F6F8FA" BorderBrush="#E1E4E8" BorderThickness="1" CornerRadius="4" Padding="8,6" MaxHeight="84">
+            <ListBox ItemsSource="{Binding Logs}" FontSize="11.5" Background="Transparent">
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="2,2" />
+                  <Setter Property="MinHeight" Value="18" />
+                </Style>
+              </ListBox.Styles>
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:LogEntry">
+                  <Grid ColumnDefinitions="72,*">
+                    <TextBlock Grid.Column="0" Text="{Binding Time}" Foreground="#6E7781" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Message}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Border>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- ========================================================= -->
+    <!-- MODE 2: WinSCP Dual-Pane Workspace (Connected)            -->
+    <!-- ========================================================= -->
+    <Grid IsVisible="{Binding IsConnected}" RowDefinitions="Auto,*,Auto,Auto,106" Margin="14">
+      <!-- Top WinSCP-style Session Bar -->
+      <StackPanel Grid.Row="0" Margin="0,0,0,10" Spacing="6">
+        <Border BorderBrush="{DynamicResource AppBannerBorder}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,8"
+                Background="{DynamicResource AppBannerBg}">
+          <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+            <Ellipse Grid.Column="0" Width="9" Height="9" Fill="#1A7F37" Margin="0,0,8,0" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1"
+                       Text="{Binding ConnectionSummary}"
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource AppBannerText}"
+                       TextTrimming="CharacterEllipsis" />
+            <Button Grid.Column="2"
+                    Click="SettingsButton_Click"
+                    ToolTip.Tip="综合设置与快捷键帮助 (Ctrl+, / F1)"
+                    Height="28"
+                    Padding="10,0"
+                    Margin="8,0,8,0"
+                    VerticalContentAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Path Data="M8 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM6.5 8a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm1.07-7a.75.75 0 0 0-.74.64l-.2 1.33a5.5 5.5 0 0 0-1.17.68L4.2 3.16a.75.75 0 0 0-.96.32l-.86 1.49a.75.75 0 0 0 .18.99l1.05.84a5.56 5.56 0 0 0 0 1.36l-1.05.84a.75.75 0 0 0-.18.99l.86 1.49c.2.34.62.47.96.32l1.26-.49c.37.27.76.5 1.17.68l.2 1.33c.06.37.38.64.74.64h1.72c.36 0 .68-.27.74-.64l.2-1.33c.41-.18.8-.41 1.17-.68l1.26.49c.34.15.76.02.96-.32l.86-1.49a.75.75 0 0 0-.18-.99l-1.05-.84a5.56 5.56 0 0 0 0-1.36l1.05-.84a.75.75 0 0 0 .18-.99l-.86-1.49a.75.75 0 0 0-.96-.32l-1.26.49a5.5 5.5 0 0 0-1.17-.68l-.2-1.33A.75.75 0 0 0 9.29 1H7.57Z"
+                      Fill="{DynamicResource AppTextSecondary}"
+                      Width="13"
+                      Height="13"
+                      Stretch="Uniform"
+                      VerticalAlignment="Center" />
+                <TextBlock Text="设置" FontSize="12" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Grid.Column="3"
+                    Margin="0,0,8,0"
+                    Content="{Binding ToggleConfigButtonText}"
+                    Command="{Binding ToggleConfigExpandedCommand}"
+                    Padding="10,4" />
+            <Button Grid.Column="4"
+                    Classes="danger"
+                    Content="断开连接"
+                    Command="{Binding ToggleConnectionCommand}"
+                    IsEnabled="{Binding !IsBusy}"
+                    Padding="12,4" />
+          </Grid>
+        </Border>
+
+        <Border IsVisible="{Binding IsConfigExpanded}"
+                BorderBrush="#D0D7DE"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="10,8"
+                Background="White">
+          <Grid ColumnDefinitions="*,*,*">
+            <TextBlock Grid.Column="0" FontSize="12" Foreground="#57606A">
+              <Run Text="跳板机：" FontWeight="SemiBold" />
+              <Run Text="{Binding JumpUsername}" />
+              <Run Text="@" />
+              <Run Text="{Binding JumpHost}" />
+              <Run Text=":" />
+              <Run Text="{Binding JumpPortText}" />
+            </TextBlock>
+            <TextBlock Grid.Column="1" FontSize="12" Foreground="#57606A">
+              <Run Text="文件服务器：" FontWeight="SemiBold" />
+              <Run Text="{Binding FileServerUsername}" />
+              <Run Text="@" />
+              <Run Text="{Binding FileServerHost}" />
+              <Run Text=":" />
+              <Run Text="{Binding FileServerPortText}" />
+            </TextBlock>
+            <TextBlock Grid.Column="2" FontSize="12" Foreground="#57606A" HorizontalAlignment="Right">
+              <Run Text="中转目录：" FontWeight="SemiBold" />
+              <Run Text="{Binding RelayBasePath}" />
+            </TextBlock>
+          </Grid>
+        </Border>
+      </StackPanel>
+
+      <!-- Dual-Pane Area: Left = Local, Right = Remote File Server -->
+      <Grid Grid.Row="1" ColumnDefinitions="*,10,*" Margin="0,0,0,8">
+        <!-- LEFT PANE: Local Machine -->
+        <Border Grid.Column="0" Name="LocalPaneDropTarget" DragDrop.AllowDrop="True" Background="{DynamicResource AppCardBg}" BorderBrush="{DynamicResource AppCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10">
+          <Grid RowDefinitions="Auto,Auto,*">
+            <Grid Grid.Row="0" Margin="0,0,0,8" ColumnDefinitions="Auto,*,260">
+              <TextBlock Grid.Column="0" Text="本地计算机" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource AppTextPrimary}" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Margin="10,0,10,0" Text="{Binding SelectedLocalCountText}" FontSize="12" Foreground="{DynamicResource AppAccentText}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              <TextBox Grid.Column="2"
+                       Name="LocalFilterBox"
+                       Text="{Binding LocalFilterText}"
+                       Watermark="过滤文件名/拼音 (Ctrl+F 或 /)"
+                       FontSize="12"
+                       Height="30"
+                       Padding="4,0,8,0"
+                       VerticalContentAlignment="Center"
+                       KeyDown="LocalFilterBox_KeyDown">
+                <TextBox.InnerLeftContent>
+                  <Border Margin="8,0,2,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                    <Path Data="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"
+                          Fill="#6E7781"
+                          Width="13"
+                          Height="13"
+                          Stretch="Uniform" />
+                  </Border>
+                </TextBox.InnerLeftContent>
+              </TextBox>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,0,0,8" ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+              <Button Grid.Column="0" Margin="0,0,6,0" Content="上级" Command="{Binding GoLocalParentDirectoryCommand}" Padding="8,4" />
+              <TextBox Grid.Column="1" Margin="0,0,6,0"
+                       Name="LocalPathBox"
+                       Text="{Binding LocalPath}"
+                       Watermark="本地目录路径"
+                       KeyDown="LocalPathBox_KeyDown" />
+              <Button Grid.Column="2" Margin="0,0,6,0" Content="浏览" Command="{Binding BrowseLocalFolderCommand}" Padding="8,4" />
+              <Button Grid.Column="3" Margin="0,0,6,0" Content="刷新" Command="{Binding RefreshLocalDirectoryCommand}" Padding="8,4" />
+              <Button Grid.Column="4" Classes="primary" Content="上传 →"
+                      Command="{Binding UploadSelectedLocalFilesCommand}"
+                      IsEnabled="{Binding CanOperateRemote}"
+                      Padding="10,4" />
+            </Grid>
+
+            <Grid Grid.Row="2">
+              <DataGrid Name="LocalFilesGrid"
+                        ItemsSource="{Binding LocalFiles}"
+                        SelectedItem="{Binding SelectedLocalFile}"
+                        SelectionMode="Extended"
+                        RowHeight="30"
+                        SelectionChanged="LocalFilesGrid_SelectionChanged"
+                        IsReadOnly="True"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="True"
+                        GridLinesVisibility="Horizontal"
+                        Background="Transparent"
+                        BorderBrush="#E1E4E8"
+                        BorderThickness="1"
+                        DragDrop.AllowDrop="True"
+                        DoubleTapped="LocalFilesGrid_DoubleTapped">
+                <DataGrid.ContextMenu>
+                  <ContextMenu>
+                    <MenuItem Header="上传到文件服务器 (Ctrl+U)" Command="{Binding UploadSelectedLocalFilesCommand}" />
+                    <MenuItem Header="重命名 (F2)" Command="{Binding RenameSelectedLocalFileCommand}" />
+                    <MenuItem Header="复制本地路径 (Ctrl+Shift+C)" Command="{Binding CopySelectedLocalPathCommand}" />
+                    <MenuItem Header="新建文件夹 (Ctrl+Shift+N)" Command="{Binding CreateLocalDirectoryCommand}" />
+                    <MenuItem Header="刷新 (F5)" Command="{Binding RefreshLocalDirectoryCommand}" />
+                    <MenuItem Header="在资源管理器中打开" Command="{Binding OpenCurrentLocalFolderCommand}" />
+                    <Separator />
+                    <MenuItem Header="删除（移至回收站）(Del)" Command="{Binding DeleteSelectedLocalFilesCommand}" />
+                  </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="" SortMemberPath="TypeSortKey" Width="34" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <Viewbox Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                          <Canvas Width="16" Height="16">
+                            <Path Data="{Binding IconGeometry}" Fill="{Binding IconBrush}" />
+                          </Canvas>
+                        </Viewbox>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="文件名" SortMemberPath="NameSortKey" Width="*" MinWidth="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Name}"
+                                   TextTrimming="CharacterEllipsis"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0"
+                                   PointerEntered="FileNameText_PointerEntered" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="大小" Binding="{Binding DisplaySize}" SortMemberPath="SizeBytes" Width="90" />
+                  <DataGridTextColumn Header="最后修改时间" Binding="{Binding ModifiedText}" SortMemberPath="ModifiedAt" Width="138" />
+                </DataGrid.Columns>
+              </DataGrid>
+              <TextBlock IsVisible="{Binding ShowLocalEmptyState}"
+                         Text="本地目录为空（可从右侧拖拽文件到此处下载）"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Foreground="#6E7781"
+                         FontSize="12.5"
+                         IsHitTestVisible="False" />
+            </Grid>
+          </Grid>
+        </Border>
+
+        <!-- RIGHT PANE: Remote File Server -->
+        <Border Grid.Column="2" Name="RemotePaneDropTarget" DragDrop.AllowDrop="True" Background="{DynamicResource AppCardBg}" BorderBrush="{DynamicResource AppCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10">
+          <Grid RowDefinitions="Auto,Auto,*">
+            <Grid Grid.Row="0" Margin="0,0,0,8" ColumnDefinitions="Auto,*,260">
+              <TextBlock Grid.Column="0" Text="文件服务器（远端）" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource AppTextPrimary}" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Margin="10,0,10,0" Text="{Binding SelectedCountText}" FontSize="12" Foreground="{DynamicResource AppAccentText}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              <TextBox Grid.Column="2"
+                       Name="RemoteFilterBox"
+                       Text="{Binding RemoteFilterText}"
+                       Watermark="过滤文件名/拼音 (Ctrl+F 或 /)"
+                       FontSize="12"
+                       Height="30"
+                       Padding="4,0,8,0"
+                       VerticalContentAlignment="Center"
+                       KeyDown="RemoteFilterBox_KeyDown">
+                <TextBox.InnerLeftContent>
+                  <Border Margin="8,0,2,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                    <Path Data="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"
+                          Fill="#6E7781"
+                          Width="13"
+                          Height="13"
+                          Stretch="Uniform" />
+                  </Border>
+                </TextBox.InnerLeftContent>
+              </TextBox>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,0,0,8" ColumnDefinitions="Auto,*,Auto,Auto">
+              <Button Grid.Column="0" Margin="0,0,6,0" Content="上级"
+                      Command="{Binding GoParentDirectoryCommand}"
+                      IsEnabled="{Binding CanOperateRemote}"
+                      Padding="8,4" />
+              <TextBox Grid.Column="1" Margin="0,0,6,0"
+                       Name="RemotePathBox"
+                       Text="{Binding RemotePath}"
+                       Watermark="文件服务器路径（如 /data/files）"
+                       KeyDown="RemotePathBox_KeyDown" />
+              <Button Grid.Column="2" Margin="0,0,8,0" Content="刷新"
+                      Command="{Binding LoadDirectoryCommand}"
+                      IsEnabled="{Binding CanOperateRemote}"
+                      Padding="8,4" />
+              <Button Grid.Column="3" Classes="primary" Content="← 下载"
+                      Command="{Binding DownloadSelectedCommand}"
+                      IsEnabled="{Binding CanOperateRemote}"
+                      Padding="10,4" />
+            </Grid>
+
+            <Grid Grid.Row="2">
+              <DataGrid Name="RemoteFilesGrid"
+                        ItemsSource="{Binding RemoteFiles}"
+                        SelectedItem="{Binding SelectedFile}"
+                        SelectionMode="Extended"
+                        RowHeight="30"
+                        SelectionChanged="RemoteFilesGrid_SelectionChanged"
+                        IsReadOnly="True"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="True"
+                        GridLinesVisibility="Horizontal"
+                        Background="Transparent"
+                        BorderBrush="#E1E4E8"
+                        BorderThickness="1"
+                        DragDrop.AllowDrop="True"
+                        DoubleTapped="RemoteFilesGrid_DoubleTapped">
+                <DataGrid.ContextMenu>
+                  <ContextMenu>
+                    <MenuItem Header="下载到左侧本地目录 (Ctrl+D)" Command="{Binding DownloadSelectedToCurrentLocalDirCommand}" />
+                    <MenuItem Header="下载另存为..." Command="{Binding DownloadSelectedCommand}" />
+                    <MenuItem Header="重命名 (F2)" Command="{Binding RenameSelectedRemoteFileCommand}" />
+                    <MenuItem Header="复制远端路径 (Ctrl+Shift+C)" Command="{Binding CopySelectedRemotePathCommand}" />
+                    <MenuItem Header="新建目录 (Ctrl+Shift+N)" Command="{Binding CreateRemoteDirectoryCommand}" />
+                    <MenuItem Header="刷新 (F5)" Command="{Binding LoadDirectoryCommand}" />
+                    <Separator />
+                    <MenuItem Header="删除远端文件/目录 (Del)" Command="{Binding DeleteSelectedRemoteFilesCommand}" />
+                  </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="" SortMemberPath="TypeSortKey" Width="34" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <Viewbox Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                          <Canvas Width="16" Height="16">
+                            <Path Data="{Binding IconGeometry}" Fill="{Binding IconBrush}" />
+                          </Canvas>
+                        </Viewbox>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="文件名" SortMemberPath="NameSortKey" Width="*" MinWidth="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Name}"
+                                   TextTrimming="CharacterEllipsis"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0"
+                                   PointerEntered="FileNameText_PointerEntered" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="大小" Binding="{Binding DisplaySize}" SortMemberPath="SizeBytes" Width="90" />
+                  <DataGridTextColumn Header="最后修改时间" Binding="{Binding ModifiedText}" SortMemberPath="ModifiedAt" Width="138" />
+                  <DataGridTextColumn Header="权限" Binding="{Binding Permissions}" SortMemberPath="Permissions" Width="96" />
+                </DataGrid.Columns>
+              </DataGrid>
+              <TextBlock IsVisible="{Binding ShowEmptyState}"
+                         Text="{Binding EmptyStateMessage}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Foreground="#6E7781"
+                         FontSize="12.5"
+                         IsHitTestVisible="False" />
+            </Grid>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <!-- Prominent Success Banner -->
+      <Border Grid.Row="2"
+              IsVisible="{Binding ShowSuccessBanner}"
+              Margin="0,0,0,8"
+              Background="{DynamicResource AppSuccessBg}"
+              BorderBrush="{DynamicResource AppSuccessBorder}"
+              BorderThickness="1"
+              CornerRadius="6"
+              Padding="12,6">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0"
+                     Text="{Binding SuccessBannerText}"
+                     Foreground="{DynamicResource AppSuccessText}"
+                     FontWeight="SemiBold"
+                     VerticalAlignment="Center" />
+          <Button Grid.Column="1"
+                  Content="关闭"
+                  Command="{Binding DismissSuccessBannerCommand}"
+                  Padding="8,2"
+                  FontSize="11.5" />
+        </Grid>
+      </Border>
+
+      <!-- Sleek Progress Bar Card & Cancel -->
+      <Border Grid.Row="3" Margin="0,0,0,8" Background="{DynamicResource AppCardBg}" BorderBrush="{DynamicResource AppCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,8">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+          <ProgressBar Grid.Column="0"
+                       Margin="0,0,12,0"
+                       Minimum="0"
+                       Maximum="100"
+                       Value="{Binding TransferProgress}"
+                       CornerRadius="4"
+                       Height="8"
+                       VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1"
+                     Margin="0,0,12,0"
+                     Text="{Binding TransferProgress, StringFormat={}{0:F0}%}"
+                     FontWeight="SemiBold"
+                     FontSize="12"
+                     Foreground="{DynamicResource AppAccentText}"
+                     VerticalAlignment="Center"
+                     MinWidth="38"
+                     TextAlignment="Right" />
+          <TextBlock Grid.Column="2"
+                     Margin="0,0,10,0"
+                     Text="{Binding TransferStage}"
+                     FontSize="12"
+                     Foreground="{DynamicResource AppTextSecondary}"
+                     VerticalAlignment="Center"
+                     MinWidth="180"
+                     TextAlignment="Right" />
+          <Button Grid.Column="3"
+                  Classes="danger"
+                  Content="取消传输"
+                  Command="{Binding CancelTransferCommand}"
+                  IsVisible="{Binding IsTransferring}"
+                  Padding="10,3"
+                  FontSize="12" />
+        </Grid>
+      </Border>
+
+      <!-- Compact Operation Logs -->
+      <Border Grid.Row="4" Background="{DynamicResource AppCardBg}" BorderBrush="{DynamicResource AppCardBorder}" BorderThickness="1" CornerRadius="4" Padding="4">
+        <ListBox ItemsSource="{Binding Logs}" FontSize="12" Background="Transparent">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="Padding" Value="6,3" />
+              <Setter Property="MinHeight" Value="22" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:LogEntry">
+              <Grid ColumnDefinitions="74,*">
+                <TextBlock Grid.Column="0" Text="{Binding Time}" Foreground="#6E7781" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding Message}" VerticalAlignment="Center" TextWrapping="Wrap" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

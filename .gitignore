@@ -1,0 +1,31 @@
+# .NET / Visual Studio / JetBrains Rider
+bin/
+obj/
+out/
+publish/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+.vscode/
+
+# Test results & coverage
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Local runtime, credentials & logs
+.local/
+config.json
+*.log
+
+# OS generated files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini

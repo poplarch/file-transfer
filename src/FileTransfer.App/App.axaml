@@ -1,0 +1,55 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="FileTransfer.App.App"
+             RequestedThemeVariant="Default">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="AppWindowBg">#F6F8FA</SolidColorBrush>
+          <SolidColorBrush x:Key="AppCardBg">#FFFFFF</SolidColorBrush>
+          <SolidColorBrush x:Key="AppCardBorder">#D0D7DE</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSubtleBorder">#E1E4E8</SolidColorBrush>
+          <SolidColorBrush x:Key="AppTextPrimary">#1F2328</SolidColorBrush>
+          <SolidColorBrush x:Key="AppTextSecondary">#57606A</SolidColorBrush>
+          <SolidColorBrush x:Key="AppTextMuted">#6E7781</SolidColorBrush>
+          <SolidColorBrush x:Key="AppBannerBg">#EEF6FF</SolidColorBrush>
+          <SolidColorBrush x:Key="AppBannerBorder">#B6E3FF</SolidColorBrush>
+          <SolidColorBrush x:Key="AppBannerText">#0550AE</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSuccessBg">#DAFBE1</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSuccessBorder">#4AC26B</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSuccessText">#116329</SolidColorBrush>
+          <SolidColorBrush x:Key="AppScrollTrackBg">#F1F3F5</SolidColorBrush>
+          <SolidColorBrush x:Key="AppScrollThumbBg">#AEB7C2</SolidColorBrush>
+          <SolidColorBrush x:Key="AppScrollThumbHoverBg">#8B949E</SolidColorBrush>
+          <SolidColorBrush x:Key="AppScrollThumbPressBg">#6E7781</SolidColorBrush>
+          <SolidColorBrush x:Key="AppAccentText">#0969DA</SolidColorBrush>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AppWindowBg">#0D1117</SolidColorBrush>
+          <SolidColorBrush x:Key="AppCardBg">#161B22</SolidColorBrush>
+          <SolidColorBrush x:Key="AppCardBorder">#30363D</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSubtleBorder">#21262D</SolidColorBrush>
+          <SolidColorBrush x:Key="AppTextPrimary">#E6EDF3</SolidColorBrush>
+          <SolidColorBrush x:Key="AppTextSecondary">#9198A1</SolidColorBrush>
+          <SolidColorBrush x:Key="AppTextMuted">#7D8590</SolidColorBrush>
+          <SolidColorBrush x:Key="AppBannerBg">#13233A</SolidColorBrush>
+          <SolidColorBrush x:Key="AppBannerBorder">#1F6FEB</SolidColorBrush>
+          <SolidColorBrush x:Key="AppBannerText">#79C0FF</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSuccessBg">#12261E</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSuccessBorder">#2EA043</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSuccessText">#56D364</SolidColorBrush>
+          <SolidColorBrush x:Key="AppScrollTrackBg">#1C2128</SolidColorBrush>
+          <SolidColorBrush x:Key="AppScrollThumbBg">#484F58</SolidColorBrush>
+          <SolidColorBrush x:Key="AppScrollThumbHoverBg">#6E7681</SolidColorBrush>
+          <SolidColorBrush x:Key="AppScrollThumbPressBg">#8B949E</SolidColorBrush>
+          <SolidColorBrush x:Key="AppAccentText">#58A6FF</SolidColorBrush>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+  </Application.Styles>
+</Application>
